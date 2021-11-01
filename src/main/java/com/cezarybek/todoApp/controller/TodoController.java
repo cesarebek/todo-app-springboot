@@ -5,37 +5,34 @@ import com.cezarybek.todoApp.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 
 @RestController
+@RequestMapping("/todo")
 public class TodoController {
 
     @Autowired
     private TodoService todoService;
 
-    @GetMapping("/")
-    public String hello(){
-        return "Hello!";
+    @GetMapping("/{user_id}/all")
+    public List<Todo> getAll(@PathVariable Integer user_id) {
+        return todoService.getAllUserTodos(user_id);
     }
 
-    @GetMapping("/getAll")
-    public Iterable<Todo> getAll(){
-        return todoService.getAllTodos();
-    }
-
-    @GetMapping("/getTodo/{id}")
-    public Optional<Todo> getTodo(@PathVariable Integer id){
+    @GetMapping("/{id}")
+    public Optional<Todo> getTodo(@PathVariable Integer id) {
         return todoService.getTodo(id);
     }
 
-    @PostMapping("/addTodo")
-    public Todo addTodo(@RequestBody Todo todo){
+    @PostMapping("/save")
+    public Todo addTodo(@RequestBody Todo todo) {
         return todoService.addTodo(todo);
     }
 
-    @DeleteMapping("/deleteTodo/{id}")
-    public String deleteTodo(@PathVariable Integer id){
+    @DeleteMapping("/{id}")
+    public String deleteTodo(@PathVariable Integer id) {
         return todoService.deleteTodo(id);
     }
 }

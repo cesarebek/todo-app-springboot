@@ -3,23 +3,23 @@ package com.cezarybek.todoApp.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name="todos")
+@Table(name = "todo")
 public class Todo {
     @Id
     @GeneratedValue
-    @Column(name="id")
+    @Column(name = "id")
     private Integer id;
 
-    @Column(name="userId")
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name="title", nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name="description")
+    @Column(name = "description")
     private String description;
 
-    @Column(name="isCompleted")
+    @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted;
 
     public Todo(Integer id, Integer userId, String title, String description, Boolean isCompleted) {
@@ -31,7 +31,9 @@ public class Todo {
     }
 
     public Todo() {
+
     }
+
 
     public Integer getId() {
         return id;
