@@ -1,8 +1,10 @@
 package com.cezarybek.todoApp.service;
 
+import com.cezarybek.todoApp.exception.TodoAppException;
 import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,7 +16,7 @@ public class UserService {
     private UserRepository userRepository;
 
 
-    public Iterable<User> getAllUsers(){
+    public Iterable<User> getAllUsers() {
         return userRepository.findAll();
     }
 
@@ -24,20 +26,20 @@ public class UserService {
 
     public String deleteUser(Integer id) {
         Optional<User> user = userRepository.findById(id);
-        if(!user.isEmpty()){
+        if (!user.isEmpty()) {
             userRepository.deleteById(id);
             return "User with id " + id + " deleted!";
-        }else{
+        } else {
             return "User with id " + id + " not exist!";
         }
     }
 
     public Optional<User> getUser(Integer id) {
         Optional<User> user = userRepository.findById(id);
-        if(!user.isEmpty()){
+        if (!user.isEmpty()) {
             return user;
-        }else{
-            throw new NullPointerException();
+        } else {
+            throw new TodoAppException(HttpStatus.NOT_FOUND, String.format("User with ID %s not found", id));
         }
 
     }

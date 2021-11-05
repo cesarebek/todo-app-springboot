@@ -3,6 +3,7 @@ package com.cezarybek.todoApp.controller;
 import com.cezarybek.todoApp.model.Todo;
 import com.cezarybek.todoApp.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +17,9 @@ public class TodoController {
     @Autowired
     private TodoService todoService;
 
-    @GetMapping("/{user_id}/all")
-    public List<Todo> getAll(@PathVariable Integer user_id) {
-        return todoService.getAllUserTodos(user_id);
+    @GetMapping("/all")
+    public List<Todo> getAll() {
+        return todoService.getAllUserTodos();
     }
 
     @GetMapping("/{id}")
@@ -32,7 +33,7 @@ public class TodoController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteTodo(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteTodo(@PathVariable Integer id) {
         return todoService.deleteTodo(id);
     }
 }

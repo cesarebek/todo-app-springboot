@@ -11,8 +11,6 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationEntrypoint implements AuthenticationEntryPoint {
     //This method is for the unauthenticated responses
-
-
     @Override
     public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, org.springframework.security.core.AuthenticationException e) throws IOException, ServletException {
         httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());

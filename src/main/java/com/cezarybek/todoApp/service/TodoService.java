@@ -1,8 +1,15 @@
 package com.cezarybek.todoApp.service;
 
+import com.cezarybek.todoApp.exception.TodoAppException;
 import com.cezarybek.todoApp.model.Todo;
+import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.repository.TodoRepository;
+import com.cezarybek.todoApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,32 +21,57 @@ public class TodoService {
     @Autowired
     private TodoRepository todoRepository;
 
+    @Autowired
+    private UserRepository userRepository;
 
-    public List<Todo> getAllUserTodos(Integer user_id) {
-        return todoRepository.getTodosByUserId(user_id);
+    private User getCurrentUser() {
+        //Retrieving current authenticated user from Security Context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        System.out.println(username);
+        //Loading the User -> id
+        User user = userRepository.getByUsername(username);
+        return user;
+    }
+
+    public List<Todo> getAllUserTodos() {
+        //Retrieving User todos
+        return todoRepository.getTodosByUserId(getCurrentUser().getId());
     }
 
     public Todo addTodo(Todo todo) {
+        todo.setUserId(getCurrentUser().getId());
         return todoRepository.save(todo);
     }
 
-    public String deleteTodo(Integer id) {
+    public ResponseEntity<String> deleteTodo(Integer id) {
+        User user = getCurrentUser();
         Optional<Todo> todo = todoRepository.findById(id);
-        if (!todo.isEmpty()) {
-            todoRepository.deleteById(id);
-            return "Todo with id " + id + " deleted!";
-        } else {
-            return "Todo with id " + id + " not exist!";
+        if (todo.isEmpty()) {
+            throw new TodoAppException(HttpStatus.NOT_FOUND, String.format("Todo with ID %s not found.", id));
+        } else if (todo.get().getUserId() != user.getId()) {
+            throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to manage this content!");
         }
+        try {
+            todoRepository.deleteById(id);
+        } catch (Exception e) {
+            throw e;
+        }
+
+        return new ResponseEntity<>(String.format("Todo with ID %s successfully deleted", id), HttpStatus.OK);
+
+
     }
 
     public Optional<Todo> getTodo(Integer id) {
+        User user = getCurrentUser();
         Optional<Todo> todo = todoRepository.findById(id);
-        if (!todo.isEmpty()) {
-            return todo;
-        } else {
-            throw new NullPointerException();
+        if (todo.isEmpty()) {
+            throw new TodoAppException(HttpStatus.NOT_FOUND, String.format("Todo with ID %s not found.", id));
+        } else if (todo.get().getUserId() != user.getId()) {
+            throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to see this content!");
         }
+        return todo;
 
     }
 }
