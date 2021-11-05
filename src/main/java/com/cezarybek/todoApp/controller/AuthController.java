@@ -7,6 +7,7 @@ import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.repository.RoleRepository;
 import com.cezarybek.todoApp.repository.UserRepository;
 import com.cezarybek.todoApp.security.JwtTokenProvider;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -46,6 +47,7 @@ public class AuthController {
     @Value("${app.jwt-expiration-milliseconds}")
     private int jwtExpirationInMs;
 
+    @ApiOperation(value = "Login to obtain the JWT Token")
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO loginDTO) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword()));
@@ -59,6 +61,7 @@ public class AuthController {
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Signup in order to start to use the API")
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody User user) {
         if (userRepository.existsByUsername(user.getUsername())) {

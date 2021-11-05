@@ -46,19 +46,19 @@ public class TodoService {
 
     public ResponseEntity<String> deleteTodo(Integer id) {
         User user = getCurrentUser();
+        System.out.println(user.getRoles().contains("ROLE_ADMIN"));
         Optional<Todo> todo = todoRepository.findById(id);
         if (todo.isEmpty()) {
             throw new TodoAppException(HttpStatus.NOT_FOUND, String.format("Todo with ID %s not found.", id));
-        } else if (todo.get().getUserId() != user.getId()) {
-            throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to manage this content!");
+        } else if (todo.get().getUserId() == user.getId() || user.getRoles().stream().anyMatch(a -> a.getName().equals("ROLE_ADMIN"))) {
+            try {
+                todoRepository.deleteById(id);
+                return new ResponseEntity<>(String.format("Todo with ID %s successfully deleted", id), HttpStatus.OK);
+            } catch (Exception e) {
+                throw e;
+            }
         }
-        try {
-            todoRepository.deleteById(id);
-        } catch (Exception e) {
-            throw e;
-        }
-
-        return new ResponseEntity<>(String.format("Todo with ID %s successfully deleted", id), HttpStatus.OK);
+        throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to manage this content!");
 
 
     }
