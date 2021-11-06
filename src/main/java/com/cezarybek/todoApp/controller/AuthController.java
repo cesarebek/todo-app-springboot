@@ -2,11 +2,11 @@ package com.cezarybek.todoApp.controller;
 
 import com.cezarybek.todoApp.DTO.AuthResponseDTO;
 import com.cezarybek.todoApp.DTO.LoginDTO;
-import com.cezarybek.todoApp.model.Role;
 import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.repository.RoleRepository;
 import com.cezarybek.todoApp.repository.UserRepository;
 import com.cezarybek.todoApp.security.JwtTokenProvider;
+import com.cezarybek.todoApp.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,13 +16,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.Date;
 
 @RestController
@@ -39,10 +37,10 @@ public class AuthController {
     private RoleRepository roleRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private UserService userService;
 
     @Value("${app.jwt-expiration-milliseconds}")
     private int jwtExpirationInMs;
@@ -63,21 +61,7 @@ public class AuthController {
 
     @ApiOperation(value = "Signup in order to start to use the API")
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            return new ResponseEntity<>("Username is already taken!", HttpStatus.IM_USED);
-        }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return new ResponseEntity<>("Email is already register, please login.", HttpStatus.IM_USED);
-        }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        Role roles = roleRepository.findByName("ROLE_USER");
-
-        user.setRoles(Collections.singleton(roles));
-
-        userRepository.save(user);
-
-        return new ResponseEntity<>("User registered successfully!", HttpStatus.CREATED);
+    public User register(@RequestBody User user) {
+        return userService.addUser(user);
     }
 }

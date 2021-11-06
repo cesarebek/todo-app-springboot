@@ -12,10 +12,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class TodoService {
 
     @Autowired
@@ -28,7 +30,6 @@ public class TodoService {
         //Retrieving current authenticated user from Security Context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        System.out.println(username);
         //Loading the User -> id
         User user = userRepository.getByUsername(username);
         return user;

@@ -3,6 +3,7 @@ package com.cezarybek.todoApp.controller;
 import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -30,7 +31,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
         return userService.deleteUser(id);
     }
 

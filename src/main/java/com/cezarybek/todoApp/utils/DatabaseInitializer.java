@@ -2,7 +2,7 @@ package com.cezarybek.todoApp.utils;
 
 import com.cezarybek.todoApp.model.Role;
 import com.cezarybek.todoApp.model.User;
-import com.cezarybek.todoApp.repository.RoleRepository;
+import com.cezarybek.todoApp.service.RoleService;
 import com.cezarybek.todoApp.service.TodoService;
 import com.cezarybek.todoApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,23 +21,20 @@ public class DatabaseInitializer implements ApplicationRunner {
     private TodoService todoService;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     public void run(ApplicationArguments args) {
+        //Adding Roles to database
+        roleService.addRole(new Role("ROLE_ADMIN", "Role for administrators of TODO API"));
+        roleService.addRole(new Role("ROLE_USER", "Role for standard users of TODO API"));
+
         //Adding Users to database
         userService.addUser(new User("cesare", "cesarebek1@gmail.com", "pass123", new ArrayList<>()));
         userService.addUser(new User("elisa", "elisa1999@gmail.com", "pass123", new ArrayList<>()));
 
-
-        //Adding Roles to database
-        roleRepository.save(new Role("ROLE_ADMIN", "Role for administrators of TODO API"));
-        roleRepository.save(new Role("ROLE_USER", "Role for standard users of TODO API"));
-
-
         //Adding Roles to Users
-
-        //Adding Todos
-
-
+        userService.addRoleToUser("cesare", "ROLE_ADMIN");
+        userService.addRoleToUser("cesare", "ROLE_USER");
+        userService.addRoleToUser("elisa", "ROLE_USER");
     }
 }
