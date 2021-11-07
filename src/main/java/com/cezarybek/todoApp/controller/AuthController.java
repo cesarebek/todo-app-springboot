@@ -2,6 +2,7 @@ package com.cezarybek.todoApp.controller;
 
 import com.cezarybek.todoApp.DTO.AuthResponseDTO;
 import com.cezarybek.todoApp.DTO.LoginDTO;
+import com.cezarybek.todoApp.DTO.UserDTO;
 import com.cezarybek.todoApp.model.User;
 import com.cezarybek.todoApp.repository.RoleRepository;
 import com.cezarybek.todoApp.repository.UserRepository;
@@ -59,9 +60,9 @@ public class AuthController {
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Signup in order to start to use the API")
+    @ApiOperation(value = "Signup a new account")
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
+    public ResponseEntity<UserDTO> register(@RequestBody User user) {
         return userService.addUser(user);
     }
 }
