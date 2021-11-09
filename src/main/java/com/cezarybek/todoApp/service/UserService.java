@@ -1,6 +1,7 @@
 package com.cezarybek.todoApp.service;
 
 import com.cezarybek.todoApp.DTO.UserDTO;
+import com.cezarybek.todoApp.DTO.UserResponse;
 import com.cezarybek.todoApp.exception.TodoAppException;
 import com.cezarybek.todoApp.model.Role;
 import com.cezarybek.todoApp.model.User;
@@ -8,8 +9,14 @@ import com.cezarybek.todoApp.repository.RoleRepository;
 import com.cezarybek.todoApp.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +39,26 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public UserResponse getAllUsers(int pageNum, int pageSize, String sortBy, String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        //Create pageable instance
+        Pageable pageable = PageRequest.of(pageNum, pageSize, sort);
+        Page<User> users = userRepository.findAll(pageable);
+
+        //Getting the content for page object
+        List<User> listOfUsers = users.getContent();
+
+        //Mapping to output response
         List usersDTO = new ArrayList();
-        users.forEach(user -> usersDTO.add(new UserDTO(user.getId(), user.getUsername(), user.getEmail())));
-        return usersDTO;
+        listOfUsers.forEach(user -> usersDTO.add(new UserDTO(user.getId(), user.getUsername(), user.getEmail())));
+
+        UserResponse userResponse = new UserResponse(usersDTO, users.getNumber(), users.getSize(), users.getTotalElements(), users.getTotalPages(), users.isLast());
+
+        return userResponse;
     }
 
     public ResponseEntity<UserDTO> addUser(User user) {
@@ -47,8 +69,6 @@ public class UserService {
             throw new TodoAppException(HttpStatus.IM_USED, "Email is already register, please login.");
         }
 
-        log.info(user.getPassword());
-
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
@@ -58,14 +78,19 @@ public class UserService {
         return new ResponseEntity<>(new UserDTO(user.getId(), user.getUsername(), user.getEmail()), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<String> deleteUser(Integer id) {
-        Optional<User> user = userRepository.findById(id);
-        if (!user.isEmpty()) {
-            userRepository.deleteById(id);
-            return new ResponseEntity<>(String.format("User with ID %s deleted!", id), HttpStatus.OK);
+    public ResponseEntity<String> deleteUser(Integer userId) {
+
+        User authUser = getCurrentUser();
+
+        if (authUser.getId() == userId || authUser.getRoles().stream().anyMatch(a -> a.getName().equals("ROLE_ADMIN"))) {
+            userRepository.findById(userId).orElseThrow(() ->
+                    new TodoAppException(HttpStatus.NOT_FOUND, String.format("User with ID %s does not exist!", userId)));
+            userRepository.deleteById(userId);
+            return new ResponseEntity<>(String.format("User with ID %s deleted successfully", userId), HttpStatus.OK);
         } else {
-            throw new TodoAppException(HttpStatus.BAD_REQUEST, String.format("User with ID %s not found", id));
+            throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to manage this content!");
         }
+
     }
 
     public UserDTO getUser(Integer id) {
@@ -91,5 +116,35 @@ public class UserService {
         user.get().getRoles().add(role);
 
         return new ResponseEntity<>(String.format("Role %s successfully added to %s", role, user), HttpStatus.OK);
+    }
+
+    public ResponseEntity<UserDTO> updateUser(Integer userId, UserDTO user) {
+
+        User authUser = getCurrentUser();
+
+        if (authUser.getId() == userId || authUser.getRoles().stream().anyMatch(a -> a.getName().equals("ROLE_ADMIN"))) {
+            User userToUpdate = userRepository.findById(userId).orElseThrow(() ->
+                    new TodoAppException(HttpStatus.NOT_FOUND, String.format("User with ID %s does not exist!", userId)));
+
+            userToUpdate.setUsername(user.getUsername());
+            userToUpdate.setEmail(user.getEmail());
+
+            userRepository.save(userToUpdate);
+
+            return new ResponseEntity<>(new UserDTO(userId, userToUpdate.getUsername(), userToUpdate.getEmail()), HttpStatus.OK);
+        } else {
+            throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to manage this content!");
+        }
+
+
+    }
+
+    private User getCurrentUser() {
+        //Retrieving current authenticated user from Security Context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        //Loading the User -> id
+        User user = userRepository.getByUsername(username);
+        return user;
     }
 }

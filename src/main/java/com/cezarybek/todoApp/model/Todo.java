@@ -1,5 +1,6 @@
 package com.cezarybek.todoApp.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -11,6 +12,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Data
+@AllArgsConstructor
 public class Todo {
     @Id
     @GeneratedValue(strategy = IDENTITY)
