@@ -75,4 +75,30 @@ public class TodoService {
         return todo;
 
     }
+
+    public Todo updateTodo(Integer id, Todo todo) {
+        User user = getCurrentUser();
+        Optional<Todo> todoItem = todoRepository.findById(id);
+        if (todoItem.isEmpty()) {
+            throw new TodoAppException(HttpStatus.NOT_FOUND, String.format("Todo with ID %s not found.", id));
+        } else if (todoItem.get().getUserId() == user.getId() || user.getRoles().stream().anyMatch(a -> a.getName() == "ROLE_ADMIN")) {
+
+            if (todo.getTitle() != null || todo.getTitle().equals("")) {
+                todoItem.get().setTitle(todo.getTitle());
+            }
+
+            if (todo.getDescription() != null) {
+                todoItem.get().setDescription(todo.getDescription());
+            }
+
+            if (todo.getIsCompleted() != null) {
+                todoItem.get().setIsCompleted(todo.getIsCompleted());
+            }
+
+
+            return todoRepository.save(todoItem.get());
+        }
+        throw new TodoAppException(HttpStatus.FORBIDDEN, "You are not allowed to see this content!");
+
+    }
 }

@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class TodoAppApplication {
@@ -22,7 +21,7 @@ public class TodoAppApplication {
         SpringApplication.run(TodoAppApplication.class, args);
     }
 
-    @Bean
+    //    @Bean
     CommandLineRunner run(UserService userService, RoleService roleService) {
         return args -> {
             //Adding Roles to database

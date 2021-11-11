@@ -1,14 +1,19 @@
 package com.cezarybek.todoApp.security;
 
 import com.cezarybek.todoApp.exception.TodoAppException;
+import com.cezarybek.todoApp.model.User;
+import com.cezarybek.todoApp.repository.UserRepository;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -18,18 +23,24 @@ public class JwtTokenProvider {
     @Value("${app.jwt-expiration-milliseconds}")
     private int jwtExpirationInMs;
 
+    @Autowired
+    private UserRepository userRepository;
+
     public String generateToken(Authentication authentication) {
         log.info("Generating JWT token...");
         String username = authentication.getName();
+        User user = userRepository.findByUsername(username).get();
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + jwtExpirationInMs);
 
+
         String token = Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getUsername())
+                .claim("id", user.getId().toString())
+                .claim("roles", authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .setIssuedAt(currentDate)
                 .setExpiration(expireDate)
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
-                .setIssuer(username)
                 .compact();
         return token;
     }

@@ -2,6 +2,7 @@ package com.cezarybek.todoApp.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Todo {
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -28,4 +30,10 @@ public class Todo {
     @Column(name = "is_completed")
     private Boolean isCompleted;
 
+    public Todo(Integer userId, String title, String description, Boolean isCompleted) {
+        this.userId = userId;
+        this.title = title;
+        this.description = description;
+        this.isCompleted = isCompleted;
+    }
 }
